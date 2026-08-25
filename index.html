@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="theme-color" content="#070dd5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="F.online">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-512.png">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Anderson Ferramentas</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Georgia',serif;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:#000;color:#fff;overflow-x:hidden}
+  button,input,textarea,select{font-family:inherit}
+  .screen{position:fixed;inset:0;display:none;flex-direction:column;overflow-y:auto}
+  .screen.active{display:flex}
+
+  /* LOGIN */
+  #login{background:#000;justify-content:center;align-items:center;padding:24px}
+  #login h1{font-size:28px;margin-bottom:24px;text-align:center}
+  #login input{width:100%;max-width:320px;padding:14px;margin:8px 0;border:1px solid #333;background:#111;color:#fff;border-radius:8px;font-size:16px}
+  #login button{width:100%;max-width:320px;padding:14px;margin-top:12px;border:none;background:#3d3a8a;color:#fff;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
+  #login .msg{font-size:12px;color:#888;margin-top:10px;text-align:center}
+
+  /* HOME */
+  #home{background:#5a5a5a;align-items:center;padding:20px}
+  #home .title{font-family:'Georgia',serif;font-weight:bold;color:#000;font-size:42px;text-align:center;margin-top:30px;line-height:1.1;letter-spacing:-1px}
+  #home .dots{color:#000;font-size:42px;text-align:right;width:100%;padding-right:20px;line-height:0.3;margin-top:-10px}
+  #home .logo-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative}
+  #home .glow{position:absolute;width:280px;height:280px;background:radial-gradient(circle,#3d3a8a 0%,transparent 65%);filter:blur(20px)}
+  #home svg{width:220px;height:220px;position:relative;z-index:1}
+  #home .menu-btn{position:absolute;top:14px;right:14px;width:46px;height:46px;border:none;background:rgba(0,0,0,.4);color:#fff;border-radius:50%;font-size:22px;cursor:pointer;z-index:5}
+
+  /* TOOLS MENU */
+  #menu{background:#000;padding:20px;padding-top:60px}
+  #menu .close{position:absolute;top:14px;left:14px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer}
+  #menu h2{text-align:center;margin-bottom:20px;font-size:22px}
+  #menu .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;margin:0 auto;padding-bottom:20px}
+  #menu .tool{padding:18px 10px;background:linear-gradient(135deg,#3d3a8a,#1a1a4a);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:bold;cursor:pointer;min-height:80px;display:flex;align-items:center;justify-content:center;text-align:center}
+
+  /* TOOL SCREEN */
+  #tool{background:#1a1a1a;padding:60px 16px 20px}
+  #tool .back{position:absolute;top:14px;left:14px;background:#3d3a8a;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px}
+  #tool h2{text-align:center;margin-bottom:16px;font-size:20px}
+  #tool .content{max-width:500px;margin:0 auto}
+
+  /* Generic inputs */
+  .inp{width:100%;padding:12px;margin:6px 0;border:1px solid #444;background:#222;color:#fff;border-radius:8px;font-size:15px}
+  .btn{padding:10px 16px;background:#3d3a8a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;margin:4px 2px}
+  .btn-sm{padding:6px 10px;font-size:12px}
+
+  /* Calculator */
+  .calc{max-width:300px;margin:0 auto}
+  .calc-display{background:#000;color:#0f0;padding:16px;font-size:28px;text-align:right;border-radius:8px;margin-bottom:8px;min-height:60px;word-wrap:break-word}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .calc-grid button{padding:16px;font-size:18px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer}
+  .calc-grid button.op{background:#3d3a8a}
+  .calc-grid button.eq{background:#0a7;grid-column:span 2}
+
+  /* Calendar */
+  .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .cal-grid div{padding:8px 0;background:#222;border-radius:4px;font-size:13px}
+  .cal-grid .hd{background:#3d3a8a;font-weight:bold}
+  .cal-grid .today{background:#0a7}
+  .cal-grid .empty{background:transparent}
+
+  /* Notepad */
+  #notepad-area{width:100%;height:200px;padding:10px;background:#222;color:#fff;border:1px solid #444;border-radius:8px;resize:vertical}
+  .emoji-bar{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+  .emoji-bar button{padding:4px 8px;background:#333;border:none;border-radius:4px;cursor:pointer;font-size:18px}
+
+  /* Tic Tac Toe */
+  .ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:260px;margin:10px auto}
+  .ttt div{aspect-ratio:1;background:#333;display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;border-radius:8px;color:#fff}
+
+  /* List */
+  .list-item{display:flex;align-items:center;gap:6px;padding:8px;background:#222;border-radius:6px;margin:4px 0}
+  .list-item span{flex:1}
+
+  /* Chronometer */
+  .chrono-display{font-size:48px;text-align:center;margin:20px 0;font-family:monospace;color:#0f0}
+
+  .ok{color:#0a7;font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="screen active">
+  <h1>Anderson Ferramentas</h1>
+  <input id="loginUser" type="text" placeholder="Usuário">
+  <input id="loginPass" type="password" placeholder="Senha">
+  <button onclick="doLogin()">Entrar / Criar usuário</button>
+  <div class="msg">Primeiro acesso cria o usuário automaticamente.</div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="screen">
+  <button class="menu-btn" onclick="show('menu')">⋮</button>
+  <div class="dots">. . .</div>
+  <div class="title">Anderson<br>Ferramentas</div>
+  <div class="logo-wrap">
+    <div class="glow"></div>
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#3d3a8a" stroke="#000" stroke-width="6" stroke-linecap="round">
+        <g id="petals"></g>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- TOOLS MENU -->
+<div id="menu" class="screen">
+  <button class="close" onclick="show('home')">×</button>
+  <h2>Ferramentas</h2>
+  <div class="grid">
+    <button class="tool" onclick="openTool('calc')">🧮 Calculadora</button>
+    <button class="tool" onclick="openTool('cal')">📅 Calendário</button>
+    <button class="tool" onclick="openTool('wa')">💬 Link WhatsApp</button>
+    <button class="tool" onclick="openTool('note')">📝 Bloco de Notas</button>
+    <button class="tool" onclick="openTool('qr')">🔲 Gerar QR Code</button>
+    <button class="tool" onclick="openTool('crypt')">🔐 Criptografar</button>
+    <button class="tool" onclick="openTool('chrono')">⏱️ Cronômetro</button>
+    <button class="tool" onclick="openTool('ttt')">❌ Jogo da Velha</button>
+    <button class="tool" onclick="openTool('bot')">🤖 Bot</button>
+    <button class="tool" onclick="openTool('info')">ℹ️ Informações</button>
+    <button class="tool" style="grid-column:span 2" onclick="openTool('list')">🛒 Adicionar à Lista</button>
+  </div>
+</div>
+
+<!-- TOOL CONTAINER -->
+<div id="tool" class="screen">
+  <button class="back" onclick="show('menu')">← Voltar</button>
+  <h2 id="toolTitle"></h2>
+  <div class="content" id="toolBody"></div>
+</div>
+
+<script>
+/* ===== Logo petals ===== */
+(function(){
+  const g=document.getElementById('petals');
+  for(let i=0;i<10;i++){
+    const a=(i/10)*2*Math.PI-Math.PI/2;
+    const x1=100+Math.cos(a)*20,y1=100+Math.sin(a)*20;
+    const x2=100+Math.cos(a)*85,y2=100+Math.sin(a)*85;
+    g.innerHTML+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="22"/>`;
+  }
+})();
+
+/* ===== Navigation ===== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===== Login ===== */
+function safeGet(k){try{return localStorage.getItem(k);}catch(e){return window['__'+k]||null;}}
+function safeSet(k,v){try{localStorage.setItem(k,v);}catch(e){window['__'+k]=v;}}
+function doLogin(){
+  const u=(document.getElementById('loginUser').value||'').trim();
+  const p=document.getElementById('loginPass').value||'';
+  if(!u||!p){alert('Preencha usuário e senha');return;}
+  let saved=null;
+  try{saved=JSON.parse(safeGet('af_user')||'null');}catch(e){saved=null;}
+  if(!saved){
+    safeSet('af_user',JSON.stringify({u,p}));
+    alert('Usuário criado! Bem-vindo, '+u);
+    show('home');
+  } else if(saved.u===u&&saved.p===p){
+    show('home');
+  } else {
+    if(confirm('Usuário/senha incorretos. Deseja redefinir e criar novo usuário?')){
+      safeSet('af_user',JSON.stringify({u,p}));
+      show('home');
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.querySelector('#login button');
+  if(btn)btn.addEventListener('click',doLogin);
+  document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+});
+
+/* ===== Tools ===== */
+function openTool(t){
+  show('tool');
+  const body=document.getElementById('toolBody');
+  const title=document.getElementById('toolTitle');
+  const tools={
+    calc:['Calculadora',calcHTML],
+    cal:['Calendário',calHTML],
+    wa:['Link do WhatsApp',waHTML],
+    note:['Bloco de Notas',noteHTML],
+    qr:['Gerar QR Code',qrHTML],
+    crypt:['Criptografar Texto',cryptHTML],
+    chrono:['Cronômetro / Relógio / Despertador',chronoHTML],
+    ttt:['Jogo da Velha',tttHTML],
+    bot:['Bot',botHTML],
+    info:['Informações',infoHTML],
+    list:['Lista de Compras',listHTML],
+  };
+  title.textContent=tools[t][0];
+  body.innerHTML=''; tools[t][1](body);
+}
+
+/* --- Calculator --- */
+function calcHTML(c){
+  c.innerHTML=`<div class="calc">
+    <div class="calc-display" id="cd">0</div>
+    <div class="calc-grid">
+      <button onclick="calcClr()">C</button><button onclick="calcDel()">⌫</button>
+      <button class="op" onclick="calcIn('%')">%</button><button class="op" onclick="calcIn('/')">÷</button>
+      <button onclick="calcIn('7')">7</button><button onclick="calcIn('8')">8</button><button onclick="calcIn('9')">9</button><button class="op" onclick="calcIn('*')">×</button>
+      <button onclick="calcIn('4')">4</button><button onclick="calcIn('5')">5</button><button onclick="calcIn('6')">6</button><button class="op" onclick="calcIn('-')">−</button>
+      <button onclick="calcIn('1')">1</button><button onclick="calcIn('2')">2</button><button onclick="calcIn('3')">3</button><button class="op" onclick="calcIn('+')">+</button>
+      <button onclick="calcIn('0')">0</button><button onclick="calcIn('.')">.</button><button class="eq" onclick="calcEq()">=</button>
+    </div></div>`;
+}
+let calcExpr='';
+function calcIn(v){calcExpr+=v;document.getElementById('cd').textContent=calcExpr;}
+function calcClr(){calcExpr='';document.getElementById('cd').textContent='0';}
+function calcDel(){calcExpr=calcExpr.slice(0,-1);document.getElementById('cd').textContent=calcExpr||'0';}
+function calcEq(){try{calcExpr=String(eval(calcExpr));document.getElementById('cd').textContent=calcExpr;}catch{document.getElementById('cd').textContent='Erro';calcExpr='';}}
+
+/* --- Calendar --- */
+let calDate=new Date();
+function calHTML(c){
+  c.innerHTML=`<div class="cal-header">
+    <button class="btn btn-sm" onclick="calNav(-1)">‹</button>
+    <div id="calLabel"></div>
+    <button class="btn btn-sm" onclick="calNav(1)">›</button>
+  </div><div class="cal-grid" id="calGrid"></div>
+  <div style="text-align:center;margin-top:10px"><button class="btn btn-sm" onclick="calToday()">Hoje</button></div>`;
+  calRender();
+}
+function calNav(n){calDate.setMonth(calDate.getMonth()+n);calRender();}
+function calToday(){calDate=new Date();calRender();}
+function calRender(){
+  const m=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calLabel').textContent=m[calDate.getMonth()]+' '+calDate.getFullYear();
+  const g=document.getElementById('calGrid');g.innerHTML='';
+  ['D','S','T','Q','Q','S','S'].forEach(d=>g.innerHTML+=`<div class="hd">${d}</div>`);
+  const y=calDate.getFullYear(),mo=calDate.getMonth();
+  const first=new Date(y,mo,1).getDay();
+  const days=new Date(y,mo+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++)g.innerHTML+='<div class="empty"></div>';
+  for(let d=1;d<=days;d++){
+    const isToday=d===today.getDate()&&mo===today.getMonth()&&y===today.getFullYear();
+    g.innerHTML+=`<div class="${isToday?'today':''}">${d}</div>`;
+  }
+}
+
+/* --- WhatsApp link --- */
+function waHTML(c){
+  c.innerHTML=`<input class="inp" id="waNum" placeholder="Ex: 5511999999999 (com DDI+DDD)">
+    <input class="inp" id="waMsg" placeholder="Mensagem (opcional)">
+    <button class="btn" onclick="waGen()">Gerar Link</button>
+    <div id="waOut" style="margin-top:10px;word-break:break-all"></div>`;
+}
+function waGen(){
+  const n=document.getElementById('waNum').value.replace(/\D/g,'');
+  const m=encodeURIComponent(document.getElementById('waMsg').value);
+  if(!n){alert('Digite o número');return;}
+  const link=`https://wa.me/${n}${m?'?text='+m:''}`;
+  document.getElementById('waOut').innerHTML=`<a href="${link}" target="_blank" style="color:#0af">${link}</a><br>
+    <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${link}');alert('Copiado!')">Copiar</button>`;
+}
+
+/* --- Notepad --- */
+function noteHTML(c){
+  const saved=localStorage.getItem('af_note')||'';
+  c.innerHTML=`<textarea id="notepad-area" placeholder="Digite aqui...">${saved}</textarea>
+    <div class="emoji-bar">
+      ${['😀','😂','❤️','👍','🎉','🔥','✅','⭐','📌','🚀','💡','📝'].map(e=>`<button onclick="addEmo('${e}')">${e}</button>`).join('')}
+    </div>
+    <button class="btn" onclick="saveNoteTxt()">Salvar como TXT</button>
+    <button class="btn" onclick="saveNoteImg()">Salvar como Imagem</button>
+    <div class="ok" id="noteOk"></div>`;
+}
+function addEmo(e){const t=document.getElementById('notepad-area');t.value+=e;}
+function saveNoteTxt(){
+  const t=document.getElementById('notepad-area').value;
+  localStorage.setItem('af_note',t);
+  const b=new Blob([t],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nota.txt';a.click();
+  document.getElementById('noteOk').textContent='Salvo!';
+}
+function saveNoteImg(){
+  const t=document.getElementById('notepad-area').value;
+  const cv=document.createElement('canvas');cv.width=600;cv.height=800;
+  const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);
+  x.fillStyle='#000';x.font='16px sans-serif';
+  t.split('\n').forEach((l,i)=>x.fillText(l,20,30+i*22));
+  const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download='nota.png';a.click();
+  document.getElementById('noteOk').textContent='Imagem salva!';
+}
+
+/* --- QR --- */
+function qrHTML(c){
+  c.innerHTML=`<input class="inp" id="qrTxt" placeholder="Texto ou URL">
+    <button class="btn" onclick="qrGen()">Gerar QR Code</button>
+    <div id="qrOut" style="display:flex;justify-content:center;margin-top:14px;background:#fff;padding:10px;border-radius:8px;min-height:20px"></div>`;
+}
+function qrGen(){
+  const t=document.getElementById('qrTxt').value;if(!t)return alert('Digite algo');
+  const o=document.getElementById('qrOut');o.innerHTML='';
+  new QRCode(o,{text:t,width:220,height:220});
+}
+
+/* --- Crypt --- */
+function cryptHTML(c){
+  c.innerHTML=`<input class="inp" id="cTxt" placeholder="Texto a criptografar">
+    <button class="btn" onclick="cEnc()">Criptografar</button>
+    <button class="btn" onclick="cDec()">Descriptografar</button>
+    <div id="cOut" style="margin-top:10px;word-break:break-all;background:#222;padding:10px;border-radius:8px;min-height:20px"></div>`;
+}
+function cEnc(){
+  const t=document.getElementById('cTxt').value;if(!t)return;
+  const enc=btoa(unescape(encodeURIComponent(t)));
+  const link=location.href.split('#')[0]+'#af='+enc;
+  document.getElementById('cOut').innerHTML=`${link}<br><button class="btn btn-sm" onclick="navigator.clipboard.writeText('${link}');alert('Link copiado!')">Copiar Link</button>`;
+}
+function cDec(){
+  let t=document.getElementById('cTxt').value;
+  if(t.includes('#af='))t=t.split('#af=')[1];
+  try{document.getElementById('cOut').textContent=decodeURIComponent(escape(atob(t)));}catch{document.getElementById('cOut').textContent='Erro ao decodificar';}
+}
+
+/* --- Chronometer --- */
+let chronoInt,chronoMs=0,chronoRun=false,countdownInt,alarmInt;
+function chronoHTML(c){
+  c.innerHTML=`
+    <div style="text-align:center;font-size:24px;margin:10px 0" id="clock"></div>
+    <h3 style="margin-top:14px">Cronômetro</h3>
+    <div class="chrono-display" id="chDisp">00:00:00.0</div>
+    <div style="text-align:center">
+      <button class="btn" onclick="chStart()">Iniciar/Pausar</button>
+      <button class="btn" onclick="chReset()">Zerar</button>
+    </div>
+    <h3 style="margin-top:20px">Temporizador</h3>
+    <div style="display:flex;gap:6px"><input class="inp" id="tH" type="number" placeholder="Horas" min="0"><input class="inp" id="tM" type="number" placeholder="Min" min="0"><input class="inp" id="tS" type="number" placeholder="Seg" min="0"></div>
+    <button class="btn" onclick="tStart()">Iniciar</button>
+    <div id="tDisp" style="text-align:center;font-size:24px;margin-top:10px"></div>
+    <h3 style="margin-top:20px">Despertador</h3>
+    <input class="inp" id="alarmT" type="time">
+    <button class="btn" onclick="alarmSet()">Definir</button>
+    <div id="alarmInfo" style="margin-top:8px"></div>`;
+  setInterval(()=>{document.getElementById('clock').textContent='🕐 '+new Date().toLocaleTimeString('pt-BR');},500);
+}
+function chFmt(ms){const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60,d=Math.floor((ms%1000)/100);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${d}`;}
+function chStart(){if(chronoRun){clearInterval(chronoInt);chronoRun=false;return;}const st=Date.now()-chronoMs;chronoRun=true;chronoInt=setInterval(()=>{chronoMs=Date.now()-st;document.getElementById('chDisp').textContent=chFmt(chronoMs);},100);}
+function chReset(){clearInterval(chronoInt);chronoRun=false;chronoMs=0;document.getElementById('chDisp').textContent='00:00:00.0';}
+function tStart(){clearInterval(countdownInt);let s=(+document.getElementById('tH').value||0)*3600+(+document.getElementById('tM').value||0)*60+(+document.getElementById('tS').value||0);if(!s)return;countdownInt=setInterval(()=>{if(s<=0){clearInterval(countdownInt);document.getElementById('tDisp').textContent='⏰ Tempo esgotado!';alert('Tempo esgotado!');return;}document.getElementById('tDisp').textContent=chFmt(s*1000);s--;},1000);}
+function alarmSet(){clearInterval(alarmInt);const t=document.getElementById('alarmT').value;if(!t)return;document.getElementById('alarmInfo').textContent='Despertador ativo: '+t;alarmInt=setInterval(()=>{const n=new Date();const cur=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');if(cur===t){alert('⏰ DESPERTADOR!');clearInterval(alarmInt);}},10000);}
+
+/* --- Tic Tac Toe --- */
+let tttBoard,tttLevel=1,tttPhase=1;
+function tttHTML(c){
+  c.innerHTML=`<div style="text-align:center;margin-bottom:10px">
+    <button class="btn btn-sm" onclick="tttSetLvl(1)">Fácil</button>
+    <button class="btn btn-sm" onclick="tttSetLvl(2)">Difícil</button>
+    <button class="btn btn-sm" onclick="tttSetLvl(3)">Impossível</button>
+    </div>
+    <div style="text-align:center" id="tttInfo">Fase ${tttPhase}/30 - Você (X) vs Máquina (O)</div>
+    <div class="ttt" id="tttBoard"></div>
+    <div style="text-align:center"><button class="btn btn-sm" onclick="tttReset()">Reiniciar Fase</button></div>`;
+  tttReset();
+}
+function tttSetLvl(l){tttLevel=l;tttPhase=1;tttReset();}
+function tttReset(){tttBoard=Array(9).fill('');const b=document.getElementById('tttBoard');b.innerHTML='';tttBoard.forEach((_,i)=>{const d=document.createElement('div');d.onclick=()=>tttPlay(i);b.appendChild(d);});document.getElementById('tttInfo').textContent=`Fase ${tttPhase}/30 - Nível ${['','Fácil','Difícil','Impossível'][tttLevel]}`;}
+function tttPlay(i){if(tttBoard[i]||tttCheck())return;tttBoard[i]='X';tttDraw();const w=tttCheck();if(w){tttEnd(w);return;}tttAI();tttDraw();const w2=tttCheck();if(w2)tttEnd(w2);}
+function tttDraw(){document.querySelectorAll('#tttBoard div').forEach((d,i)=>{d.textContent=tttBoard[i];d.style.color=tttBoard[i]==='X'?'#0af':'#f55';});}
+function tttCheck(){const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];for(const [a,b,c] of w)if(tttBoard[a]&&tttBoard[a]===tttBoard[b]&&tttBoard[a]===tttBoard[c])return tttBoard[a];if(!tttBoard.includes(''))return 'D';return null;}
+function tttEnd(w){setTimeout(()=>{if(w==='X'){alert('Você venceu a fase '+tttPhase+'!');if(tttPhase<30)tttPhase++;}else if(w==='O')alert('Máquina venceu!');else alert('Empate!');tttReset();},100);}
+function tttAI(){
+  const empty=tttBoard.map((v,i)=>v===''?i:null).filter(v=>v!==null);if(!empty.length)return;
+  const effLvl=Math.min(3,tttLevel+Math.floor(tttPhase/10));
+  if(effLvl===1&&Math.random()<0.7){tttBoard[empty[Math.floor(Math.random()*empty.length)]]='O';return;}
+  // minimax
+  let best=-Infinity,move=empty[0];
+  for(const i of empty){tttBoard[i]='O';const s=minimax(tttBoard,false,0,effLvl===3?9:3);tttBoard[i]='';if(s>best){best=s;move=i;}}
+  tttBoard[move]='O';
+}
+function minimax(b,isMax,depth,maxD){const w=tttCheck();if(w==='O')return 10-depth;if(w==='X')return depth-10;if(w==='D'||depth>=maxD)return 0;let best=isMax?-Infinity:Infinity;for(let i=0;i<9;i++)if(!b[i]){b[i]=isMax?'O':'X';const s=minimax(b,!isMax,depth+1,maxD);b[i]='';best=isMax?Math.max(best,s):Math.min(best,s);}return best;}
+
+/* --- Bot --- */
+function botHTML(c){
+  c.innerHTML=`<div id="botChat" style="height:300px;overflow-y:auto;background:#222;padding:10px;border-radius:8px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px"><input class="inp" id="botIn" placeholder="Digite uma mensagem"><button class="btn" onclick="botSend()">Enviar</button></div>`;
+  botMsg('bot','Olá! Diga oi, bom dia, boa tarde, boa noite ou olá.');
+}
+function botMsg(who,t){const c=document.getElementById('botChat');c.innerHTML+=`<div style="margin:4px 0;text-align:${who==='you'?'right':'left'}"><b>${who==='you'?'Você':'Bot'}:</b> ${t}</div>`;c.scrollTop=c.scrollHeight;}
+function botSend(){const i=document.getElementById('botIn');const t=i.value.trim().toLowerCase();if(!t)return;botMsg('you',i.value);i.value='';setTimeout(()=>{if(/^(oi|olá|ola|bom dia|boa tarde|boa noite)/.test(t))botMsg('bot','Olá! Tudo bem? Estou em fase de teste, não estou perfeitamente funcionando neste momento. Tente mais tarde.');else botMsg('bot','Desculpe, ainda estou em fase de teste. Tente cumprimentar: oi, olá, bom dia, boa tarde ou boa noite.');},400);}
+
+/* --- Info --- */
+function infoHTML(c){
+  c.innerHTML=`<div id="infoOut" style="background:#222;padding:12px;border-radius:8px;font-size:13px;line-height:1.7"></div>`;
+  const nav=navigator;
+  let html=`<b>📱 Dispositivo</b><br>
+    User Agent: ${nav.userAgent}<br>
+    Plataforma: ${nav.platform}<br>
+    Idioma: ${nav.language}<br>
+    Online: ${nav.onLine?'Sim':'Não'}<br>
+    Cores tela: ${screen.colorDepth} bits<br>
+    Resolução: ${screen.width}x${screen.height}<br>
+    Janela: ${innerWidth}x${innerHeight}<br>
+    CPU cores: ${nav.hardwareConcurrency||'?'}<br>
+    RAM aprox.: ${nav.deviceMemory||'?'} GB<br>
+    Conexão: ${nav.connection?nav.connection.effectiveType:'?'}<br>
+    Bateria: <span id="bat">consultando...</span><br>
+    Armazenamento: <span id="sto">consultando...</span><br>
+    IP público: <span id="ip">consultando...</span><br>
+    Bluetooth: ${nav.bluetooth?'API disponível':'Não suportado'}<br>
+    Localização: <span id="geo">consultando...</span>`;
+  document.getElementById('infoOut').innerHTML=html;
+  if(nav.getBattery)nav.getBattery().then(b=>document.getElementById('bat').textContent=Math.round(b.level*100)+'% '+(b.charging?'(carregando)':''));
+  if(nav.storage&&nav.storage.estimate)nav.storage.estimate().then(e=>document.getElementById('sto').textContent=(e.usage/1048576).toFixed(1)+' MB usados / '+(e.quota/1048576).toFixed(1)+' MB total');
+  fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>document.getElementById('ip').textContent=d.ip).catch(()=>document.getElementById('ip').textContent='indisponível');
+  if(nav.geolocation)nav.geolocation.getCurrentPosition(p=>document.getElementById('geo').textContent=p.coords.latitude.toFixed(3)+', '+p.coords.longitude.toFixed(3),()=>document.getElementById('geo').textContent='negado');
+}
+
+/* --- Shopping List --- */
+let shopList=JSON.parse(localStorage.getItem('af_list')||'[]');
+function listHTML(c){
+  c.innerHTML=`<div style="display:flex;gap:6px"><input class="inp" id="lIn" placeholder="Item"><button class="btn" onclick="lAdd()">+</button></div>
+    <div id="lOut" style="margin:10px 0"></div>
+    <button class="btn" onclick="lSaveTxt()">Salvar TXT</button>
+    <button class="btn" onclick="lSaveImg()">Salvar Imagem</button>`;
+  lRender();
+}
+function lAdd(){const v=document.getElementById('lIn').value.trim();if(!v)return;shopList.push(v);document.getElementById('lIn').value='';lSave();lRender();}
+function lSave(){localStorage.setItem('af_list',JSON.stringify(shopList));}
+function lDel(i){shopList.splice(i,1);lSave();lRender();}
+function lEdit(i){const n=prompt('Editar:',shopList[i]);if(n!==null){shopList[i]=n;lSave();lRender();}}
+function lRender(){const o=document.getElementById('lOut');o.innerHTML=shopList.map((it,i)=>`<div class="list-item"><span>${i+1}. ${it}</span><button class="btn btn-sm" onclick="lEdit(${i})">✏️</button><button class="btn btn-sm" onclick="lDel(${i})">🗑️</button></div>`).join('')||'<i style="color:#888">Lista vazia</i>';}
+function lSaveTxt(){const t='Lista de Compras\n\n'+shopList.map((i,n)=>`${n+1}. ${i}`).join('\n');const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='lista.txt';a.click();}
+function lSaveImg(){const cv=document.createElement('canvas');cv.width=500;cv.height=Math.max(200,80+shopList.length*30);const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#000';x.font='bold 22px sans-serif';x.fillText('Lista de Compras',20,40);x.font='18px sans-serif';shopList.forEach((i,n)=>x.fillText(`${n+1}. ${i}`,20,80+n*30));const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download='lista.png';a.click();}
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load', function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('sw falhou', e);});});}</script>
+</body>
+</html>
