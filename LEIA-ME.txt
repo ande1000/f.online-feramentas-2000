@@ -1,0 +1,21 @@
+INSTALL APP — pacote gerado para feramantas online
+========================================
+
+O QUE TEM AQUI DENTRO
+- index.html      -> seu site, já preparado para virar app
+- manifest.json   -> identidade do app (nome, cor, ícones)
+- sw.js           -> service worker (funcionamento offline)
+- icons/          -> ícones em 192x192 e 512x512
+
+COMO INSTALAR NO ANDROID
+1. Hospede esta pasta inteira em um servidor (GitHub Pages, Netlify Drop, Vercel, etc).
+   Os arquivos precisam ficar todos na mesma pasta, sem mudar os nomes.
+2. No celular Android, abra o link pelo navegador Chrome.
+3. Toque no aviso "Instalar app" que aparece, ou no menu (3 pontinhos) > "Instalar aplicativo".
+4. O ícone aparece na tela inicial e abre em tela cheia, como um app nativo.
+
+GERAR UM .APK DE VERDADE (opcional)
+Depois de hospedar, cole o link do site em https://www.pwabuilder.com
+Ele usa o mesmo manifest.json gerado aqui para compilar um .apk/.aab
+usando as ferramentas oficiais do Android — algo que não é possível
+fazer somente com HTML/CSS/JS dentro do navegador.
